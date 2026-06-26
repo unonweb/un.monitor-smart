@@ -78,7 +78,7 @@ function main {
 				
 				# If no flag worked, log an error and skip the disk to avoid spam
 				if [[ "${usb_supported}" == false ]]; then
-					echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Cannot read SMART data for USB disk ${disk}. Bridge chip may be unsupported." >> "${ERROR_LOG}"
+					echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Cannot read SMART data for USB disk ${disk}. Bridge chip may be unsupported." >> "${ERROR_LOG_FILE}"
 					continue
 				fi
 			fi
@@ -87,7 +87,7 @@ function main {
         	check_sata "${disk}" "${smart_args}"
 		else
 			# Log or ignore unknown block devices (e.g., mmcblk, md, dm)
-			echo "$(date '+%Y-%m-%d %H:%M:%S') - INFO: Unrecognized base device type for ${disk}, skipping." >> "${ERROR_LOG}"
+			echo "$(date '+%Y-%m-%d %H:%M:%S') - INFO: Unrecognized base device type for ${disk}, skipping." >> "${ERROR_LOG_FILE}"
 		fi
 	done
 }
