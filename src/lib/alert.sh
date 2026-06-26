@@ -6,7 +6,7 @@ function alert {
 		echo "Sending Mail-Alert to ${ALERT_MAIL_TO}"
 
 		echo -e "${message}" | \
-		mail -s "${MAIL_SUBJECT}${subject}" "${ALERT_MAIL_TO}"
+		mail -s "${ALERT_MAIL_SUBJECT_PREFIX}${subject}" "${ALERT_MAIL_TO}"
 	fi
 
 	if ((ALERT_LOG)); then
