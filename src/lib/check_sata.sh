@@ -12,10 +12,11 @@ function check_sata {
     # PARSE SMART ATTRIBUTES
 	# ======================
     # Grep lines that start with a number (these are the attribute rows)
+
     grep -E '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
         
 		# Skip attributes that are not included
-		if ! is_str_in_arr "${attribute_name}" "${SMART_SATA_INCLUDE_ATTRIBUTES[@]}"; then
+		if ! is_str_in_arr "${attribute_name}" "${SMART_INCLUDE_SATA_ATTRIBUTES[@]}"; then
 			if ((DEBUG)); then echo "Skipping attribute ${attribute_name}"; fi
 			continue
 		fi
@@ -23,6 +24,7 @@ function check_sata {
         # WORST
 		# =====
 		# Monitor for new WORST value lows
+
         local prev_worst=$(get_state "${disk_name}" "${id}_worst")
 		# use (( )) to handle numbers correctly
 		# use 10# to force bash to treat the value as a base-10 integer
@@ -38,6 +40,8 @@ function check_sata {
 		# THRESH
 		# ======
         # Compare RAW_VALUE against THRESH
+		
+		# Check that both vars contain only numbers
         if [[ "${thresh}" =~ ^[0-9]+$ ]] && [[ "${raw_value}" =~ ^[0-9]+$ ]]; then
             if (( raw_value > thresh )); then
                 # Only alert once per threshold cross to prevent spam
@@ -60,6 +64,7 @@ function check_sata {
 	# TEST RESULTS
 	# ============
     # Monitor new test results for errors
+	
     # Grab the most recent test result (starts with "# 1") from the same log
     latest_test=$(grep -E "^# 1 " "${tmp_log}")
     if [[ -n "${latest_test}" ]] && ! echo "${latest_test}" | grep -qi "Completed without error"; then
