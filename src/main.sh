@@ -9,6 +9,7 @@ PATH_CONFIG="${SCRIPT_PARENT}/config.cfg"
 PATH_DEFAULTS="${SCRIPT_PARENT}/defaults.cfg"
 
 # IMPORTS
+source "${SCRIPT_DIR}/lib/is_str_in_arr.sh"
 source "${SCRIPT_DIR}/lib/alert.sh"
 source "${SCRIPT_DIR}/lib/check_nvme.sh"
 source "${SCRIPT_DIR}/lib/check_sata.sh"

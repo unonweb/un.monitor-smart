@@ -14,6 +14,12 @@ function check_sata {
     # Grep lines that start with a number (these are the attribute rows)
     grep -E '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
         
+		# Skip attributes that are not included
+		if ! is_str_in_arr "${attribute_name}" "${SMART_SATA_INCLUDE_ATTRIBUTES[@]}"; then
+			if ((DEBUG)); then echo "Skipping attribute ${attribute_name}"; fi
+			continue
+		fi
+
         # WORST
 		# =====
 		# Monitor for new WORST value lows
@@ -71,17 +77,4 @@ function check_sata {
             set_state "${disk_name}" "latest_error_test" "${test_lifetime}"
         fi
     fi
-
-	# DEBUG
-	# =====
-	if ((DEBUG)); then
-		echo -e "\
-			id: ${id}\n\
-			attribute_name: ${attribute_name}\n\
-			worst: ${worst}\n\
-			thresh: ${thresh}\n\
-			raw_value: ${raw_value}\n\
-			latest_test: ${latest_test}\n\
-		"
-	fi
 }
