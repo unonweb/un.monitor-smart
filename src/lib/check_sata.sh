@@ -5,16 +5,22 @@ function check_sata {
     local disk_name=$(basename "${disk}")
     local tmp_log="${TMP_DIR}/${disk_name}.log"
 
-    # Dump all SMART data (Attributes and Self-Test logs) to a temp file
+    # DUMP SMART DATA
+	# (Attributes and Self-Test logs) to a tmp file
     smartctl --all ${smart_args} "${disk}" > "${tmp_log}"
 
-    # 1. & 2. Parse SMART Attributes (WORST, RAW_VALUE, THRESH)
+    # PARSE SMART ATTRIBUTES
+	# ======================
     # Grep lines that start with a number (these are the attribute rows)
     grep -E '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
         
-        # Monitor for new WORST value lows
+        # WORST
+		# =====
+		# Monitor for new WORST value lows
         local prev_worst=$(get_state "${disk_name}" "${id}_worst")
-        if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then # && [[ "${worst}" -lt "${prev_worst}" ]]; then
+		# use (( )) to handle numbers correctly
+		# use 10# to force bash to treat the value as a base-10 integer
+        if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
 			local subj="[${disk}] New WORST value for ${attribute_name}"
 			local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
@@ -22,7 +28,9 @@ function check_sata {
 			alert "${subj}" "${msg}"
         fi
         set_state "${disk_name}" "${id}_worst" "${worst}"
-
+		
+		# THRESH
+		# ======
         # Compare RAW_VALUE against THRESH
         if [[ "${thresh}" =~ ^[0-9]+$ ]] && [[ "${raw_value}" =~ ^[0-9]+$ ]]; then
             if (( raw_value > thresh )); then
@@ -43,7 +51,9 @@ function check_sata {
         fi
     done
 
-    # 3. Monitor new test results for errors
+	# TEST RESULTS
+	# ============
+    # Monitor new test results for errors
     # Grab the most recent test result (starts with "# 1") from the same log
     latest_test=$(grep -E "^# 1 " "${tmp_log}")
     if [[ -n "${latest_test}" ]] && ! echo "${latest_test}" | grep -qi "Completed without error"; then
@@ -64,7 +74,6 @@ function check_sata {
 
 	# DEBUG
 	# =====
-
 	if ((DEBUG)); then
 		echo -e "\
 			id: ${id}\n\
