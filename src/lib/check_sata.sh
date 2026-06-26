@@ -10,28 +10,28 @@ function check_sata {
 
     # 1. & 2. Parse SMART Attributes (WORST, RAW_VALUE, THRESH)
     # Grep lines that start with a number (these are the attribute rows)
-    grep -E '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id name flag value worst thresh type updated when_failed raw; do
+    grep -E '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
         
         # Monitor for new WORST value lows
         local prev_worst=$(get_state "${disk_name}" "${id}_worst")
         if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then # && [[ "${worst}" -lt "${prev_worst}" ]]; then
 
-			local subj="[${disk}] New WORST value for ${name}"
-			local msg="The WORST value for attribute ${name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
+			local subj="[${disk}] New WORST value for ${attribute_name}"
+			local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
 
 			alert "${subj}" "${msg}"
         fi
         set_state "${disk_name}" "${id}_worst" "${worst}"
 
         # Compare RAW_VALUE against THRESH
-        if [[ "${thresh}" =~ ^[0-9]+$ ]] && [[ "$raw" =~ ^[0-9]+$ ]]; then
-            if (( raw > thresh )); then
+        if [[ "${thresh}" =~ ^[0-9]+$ ]] && [[ "${raw_value}" =~ ^[0-9]+$ ]]; then
+            if (( raw_value > thresh )); then
                 # Only alert once per threshold cross to prevent spam
                 local raw_alerted=$(get_state "${disk_name}" "${id}_raw_alerted")
                 if [[ "${raw_alerted}" != "1" ]]; then
 
-					local subj="[${disk}] RAW exceeds THRESH for ${name}"
-					local msg="Attribute ${name} (ID ${id}) on ${disk} has a RAW_VALUE of ${raw}, which exceeds the THRESHOLD of ${thresh}."
+					local subj="[${disk}] RAW exceeds THRESH for ${attribute_name}"
+					local msg="Attribute ${attribute_name} (ID ${id}) on ${disk} has a RAW_VALUE of ${raw_value}, which exceeds the THRESHOLD of ${thresh}."
 
 					alert "${subj}" "${msg}"
 					# set alerted to prevent multiple alerts for the same cause
@@ -68,10 +68,10 @@ function check_sata {
 	if ((DEBUG)); then
 		echo -e "\
 			id: ${id}\n\
-			name: ${name}\n\
+			attribute_name: ${attribute_name}\n\
 			worst: ${worst}\n\
 			thresh: ${thresh}\n\
-			raw: ${raw}\n\
+			raw_value: ${raw_value}\n\
 			latest_test: ${latest_test}\n\
 		"
 	fi
