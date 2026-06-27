@@ -36,6 +36,41 @@ function check_sata_format_old {
 			set_state "${disk_name}" "${id}_fail_alerted" "0"
 		fi
 
+		# TEMPERATURE
+		# ===========
+
+		if [[ "${attribute_name}" = "Temperature_Celsius" ]]; then
+			
+			local prev_worst=$(get_state "${disk_name}" "${id}_worst")
+
+			if (( 10#${raw_value} == 10#${value} )); then
+				# This manufacturer is using a 1:1 Celsius scale
+				# Here we need to check if the new worst value is HIGHER that the previous
+				if [[ -n "${prev_worst}" ]] && (( 10#${worst} > 10#${prev_worst} )); then
+
+					local subj="[${disk}] New WORST value for ${attribute_name}"
+					local msg="The WORST value for attribute ${attribute_name} (ID ${id}) raised from ${prev_worst} to ${worst} on ${disk}."
+					
+					debug "${msg}"
+					alert "${subj}" "${msg}"
+				fi
+
+			else
+				# This manufacturer is using a normalized scale
+				if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
+
+					local subj="[${disk}] New WORST value for ${attribute_name}"
+					local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
+					
+					debug "${msg}"
+					alert "${subj}" "${msg}"
+				fi
+			fi
+			
+			set_state "${disk_name}" "${id}_worst" "${worst}"
+		fi
+		
+
 		# WORST
 		# =====
 		# Monitor for new WORST value lows of 'Pre-fail' types
