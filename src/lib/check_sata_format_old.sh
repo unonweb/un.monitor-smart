@@ -11,14 +11,14 @@ function check_sata_format_old {
 		# read then assigns the encountered pieces of text one-by-one to the given variables
 		# read -r prevents backslashes from acting as escape characters, preserving the text exactly as it is
 
-		if ((DEBUG)); then echo -e "\nAttribute: ${attribute_name}"; fi
+		debug "\nAttribute: ${attribute_name}"
 		
 		# WHEN_FAILED
 		# ===========
 		
 		if [[ "${when_failed}" != "-" ]]; then
 
-			if ((DEBUG)); then echo "Fail Alert: ${when_failed}"; fi
+			debug "Fail Alert: ${when_failed}"
 
 			# Only alert once per threshold cross to prevent spam
 			local fail_alerted=$(get_state "${disk_name}" "${id}_fail_alerted")
@@ -32,14 +32,8 @@ function check_sata_format_old {
 				set_state "${disk_name}" "${id}_fail_alerted" "1"
 			fi
 		else
-			if ((DEBUG)); then echo "No Fail detected: ${when_failed}"; fi
+			debug "No Fail detected: ${when_failed}"
 			set_state "${disk_name}" "${id}_fail_alerted" "0"
-		fi
-
-		# Skip attributes we're not interested in
-		if ! is_str_in_arr "${attribute_name}" "${SMART_INCLUDE_SATA_ATTRIBUTES[@]}"; then
-			if ((DEBUG)); then echo "Skipping attribute"; fi
-			continue
 		fi
 
         # WORST
