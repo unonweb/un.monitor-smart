@@ -3,12 +3,14 @@ function check_sata {
     local disk="${1}"
 	local smart_args="${2}"
     local disk_name=$(basename "${disk}")
-    local tmp_log="${TMP_DIR}/${disk_name}.log"
+    local tmp_log_all="${TMP_DIR}/${disk_name}.log"
 
 	# Dump SMART data
 	# (Attributes and Self-Test logs) to a tmp file
-    smartctl --all ${smart_args} "${disk}" > "${tmp_log}"
-	
+    smartctl --all ${smart_args} "${disk}" > "${tmp_log_all}"
+
+	smartctl --log=scttempsts $smart_args "$disk" > "${tmp_log_all}"
+
 	# CHECK --format=old
 	source "${SCRIPT_DIR}/lib/check_sata_format_old.sh"
 
@@ -16,14 +18,14 @@ function check_sata {
 	# ======================
     # Grep lines that start with a number (these are the attribute rows)
 
-    check_sata_format_old "${tmp_log}"
+    check_sata_format_old "${tmp_log_all}"
 
 	# PARSE TEST RESULTS
 	# ==================
     # Monitor new test results for errors
 
     # Grab the most recent test result (starts with "# 1") from the same log
-    latest_test=$(grep -E "^# 1 " "${tmp_log}")
+    latest_test=$(grep -E "^# 1 " "${tmp_log_all}")
     if [[ -n "${latest_test}" ]] && ! echo "${latest_test}" | grep -qi "Completed without error"; then
         
         # Use the LifeTime(hours) column as a unique identifier for the test
