@@ -16,7 +16,7 @@ function check_nvme_attributes {
     if [[ "${crit_warn}" != "0x00" ]] && [[ "${crit_warn}" != "${prev_crit_warn}" ]]; then
 		
 		local msg="Critical Warning: ${crit_warn}"
-		alert_msg+="${msg}"
+		alert_msg+="${msg}\n"
         set_state "${disk_name}" "crit_warn" "${crit_warn}"
     fi
 
@@ -32,7 +32,7 @@ function check_nvme_attributes {
             if [[ "${spare_alerted}" != "1" ]]; then
 				
 				local msg="MSG: Available spare on ${disk} has dropped to ${avail_spare}%, reaching/exceeding the threshold of ${spare_thresh}%."
-				alert_msg+="${msg}"
+				alert_msg+="${msg}\n"
                 set_state "${disk_name}" "spare_alerted" "1"
             fi
         fi
@@ -48,7 +48,7 @@ function check_nvme_attributes {
     if [[ -n "${errors}" ]] && (( errors > prev_errors )); then
 
 		local msg="MSG: Media and Data Integrity Errors on ${disk} increased from ${prev_errors} to ${errors}."
-		alert_msg+="${msg}"
+		alert_msg+="${msg}\n"
         set_state "${disk_name}" "errors" "${errors}"
     fi
 
@@ -61,7 +61,7 @@ function check_nvme_attributes {
     if [[ -n "${unsafe}" ]] && (( unsafe > prev_unsafe )); then
 
 		local msg="Unsafe shutdowns on ${disk} increased from ${prev_unsafe} to ${unsafe}."
-		alert_msg+="${msg}"
+		alert_msg+="${msg}\n"
         set_state "${disk_name}" "unsafe" "${unsafe}"
     fi
 
@@ -78,7 +78,7 @@ function check_nvme_attributes {
     if [[ -n "${warn_temp_time}" ]] && (( warn_temp_time > prev_warn_time )); then
 
 		local msg="Warning Composite Temperature Time on ${disk} increased to ${warn_temp_time} minutes."
-		alert_msg+="${msg}"
+		alert_msg+="${msg}\n"
 		set_state "${disk_name}" "warn_temp_time" "${warn_temp_time}"
     fi
 
@@ -87,7 +87,7 @@ function check_nvme_attributes {
     if [[ -n "${crit_temp_time}" ]] && (( crit_temp_time > prev_crit_time )); then
 
 		local msg="Critical Composite Temperature Time on ${disk} increased to ${crit_temp_time} minutes."
-		alert_msg+="${msg}"
+		alert_msg+="${msg}\n"
 		set_state "${disk_name}" "crit_temp_time" "${crit_temp_time}"
     fi
 
@@ -95,6 +95,7 @@ function check_nvme_attributes {
 	# =====
 	
 	if [[ -n "${alert_msg}" ]]; then
+		debug "\nAlert: ${alert_msg}"
 		alert "${alert_msg}"
 	fi
 
