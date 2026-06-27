@@ -34,8 +34,10 @@ function main {
 		source "${PATH_DEFAULTS}"
 	fi
 
-	# Ensure state directory exists
+	# Ensure required directory exist
 	mkdir -p "${STATE_DIR}"
+	mkdir -p "${TMP_DIR}"
+	mkdir -p "${LOG_DIR}"
 
 	# 1. Detect all mounted disks
 	DISKS=$(get_mounted_disks)
