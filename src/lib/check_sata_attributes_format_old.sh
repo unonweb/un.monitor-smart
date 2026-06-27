@@ -3,6 +3,8 @@ function check_sata_attributes_format_old {
 	local tmp_log="${1}"
 	local alert_msg=""
 
+	source "${SCRIPT_DIR}/lib/alert.sh"
+
 	grep --extended-regexp '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
 		# '^[[:space:]]*'
 		# Matches any line that starts with zero or more spaces
@@ -25,14 +27,14 @@ function check_sata_attributes_format_old {
 			local fail_alerted=$(get_state "${disk_name}" "${id}_fail_alerted")
 			if [[ "${fail_alerted}" != "1" ]]; then
 
-				local msg="DISK: ${disk}\nATTRIBUTE: ${id} ${attribute_name}\n\n Fail Alert: ${when_failed}"
-				alert_msg+="${msg}"
+				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\n Fail Alert: ${when_failed}"
+				alert_msg+="${msg}\n"
 				
 				# set state to prevent multiple alerts for the same cause
 				set_state "${disk_name}" "${id}_fail_alerted" "1"
 			fi
 		else
-			debug "No Fail detected: ${when_failed}"
+			# debug "No Fail detected: ${when_failed}"
 			set_state "${disk_name}" "${id}_fail_alerted" "0"
 		fi
 
@@ -40,12 +42,30 @@ function check_sata_attributes_format_old {
 		# ===========
 
 		if [[ "${attribute_name}" = "Temperature_Celsius" ]]; then
+			# ID: 194
 			local attribute_temparature_celsius_present=1
 			local prev_worst=$(get_state "${disk_name}" "${id}_worst")
 
-			if (( 10#${raw_value} == 10#${value} )); then
+			# Match digits at the start of the string
+			if [[ "${raw_value}" =~ ^([0-9]+) ]]; then
+				# BASH_REMATCH[1] contains the captured text 
+				# (regex inside the first set of parentheses)
+				raw_value_cleaned="${BASH_REMATCH[1]}"
+			fi
+
+			if [[ -z "${raw_value_cleaned}" ]]; then
+				msg="ERROR: Could not get raw_value_cleaned from ${raw_value}"
+				log "${msg}"
+				debug "${msg}"
+				continue
+			fi
+			
+			# Figure out scale
+			if (( 10#${raw_value_cleaned} == 10#${value} )); then
 				# This manufacturer is using a 1:1 Celsius scale
 				# Here we need to check if the new worst value is HIGHER that the previous
+				debug "Celsius Scale: 1:1"
+
 				if [[ -n "${prev_worst}" ]] && (( 10#${worst} > 10#${prev_worst} )); then
 
 					local msg="The WORST value for attribute ${attribute_name} (ID ${id}) raised from ${prev_worst} to ${worst} on ${disk}."
@@ -56,6 +76,7 @@ function check_sata_attributes_format_old {
 				# This manufacturer is using a normalized scale
 				if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
+					debug "Celsius Scale: normalized"
 					local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
 					alert_msg+="${msg}"					
 					debug "${msg}"
@@ -79,7 +100,7 @@ function check_sata_attributes_format_old {
 
 				local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
 				alert_msg+="${msg}"
-				debug "${msg}"
+				debug "Alert: ${msg}"
 			fi
 
 			set_state "${disk_name}" "${id}_worst" "${worst}"
@@ -89,6 +110,7 @@ function check_sata_attributes_format_old {
 
 	# ALERT
 	# =====
+	debug "alert_msg: ${alert_msg}"
 
 	if [[ -n "${alert_msg}" ]]; then
 		alert "${alert_msg}"
