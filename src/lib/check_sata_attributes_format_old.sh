@@ -1,6 +1,7 @@
 function check_sata_attributes_format_old {
 
 	local tmp_log="${1}"
+	local alert_msg=""
 
 	grep --extended-regexp '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
 		# '^[[:space:]]*'
@@ -24,10 +25,9 @@ function check_sata_attributes_format_old {
 			local fail_alerted=$(get_state "${disk_name}" "${id}_fail_alerted")
 			if [[ "${fail_alerted}" != "1" ]]; then
 
-				local subj="[${disk}] Fail Alert: ${attribute_name}"
 				local msg="DISK: ${disk}\nATTRIBUTE: ${id} ${attribute_name}\n\n Fail Alert: ${when_failed}"
-
-				alert "${subj}" "${msg}"
+				alert_msg+="${msg}"
+				
 				# set state to prevent multiple alerts for the same cause
 				set_state "${disk_name}" "${id}_fail_alerted" "1"
 			fi
@@ -40,7 +40,7 @@ function check_sata_attributes_format_old {
 		# ===========
 
 		if [[ "${attribute_name}" = "Temperature_Celsius" ]]; then
-			
+			local attribute_temparature_celsius_present=1
 			local prev_worst=$(get_state "${disk_name}" "${id}_worst")
 
 			if (( 10#${raw_value} == 10#${value} )); then
@@ -48,22 +48,17 @@ function check_sata_attributes_format_old {
 				# Here we need to check if the new worst value is HIGHER that the previous
 				if [[ -n "${prev_worst}" ]] && (( 10#${worst} > 10#${prev_worst} )); then
 
-					local subj="[${disk}] New WORST value for ${attribute_name}"
 					local msg="The WORST value for attribute ${attribute_name} (ID ${id}) raised from ${prev_worst} to ${worst} on ${disk}."
-					
+					alert_msg+="${msg}"
 					debug "${msg}"
-					alert "${subj}" "${msg}"
 				fi
-
 			else
 				# This manufacturer is using a normalized scale
 				if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
-					local subj="[${disk}] New WORST value for ${attribute_name}"
 					local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
-					
+					alert_msg+="${msg}"					
 					debug "${msg}"
-					alert "${subj}" "${msg}"
 				fi
 			fi
 			
@@ -82,15 +77,20 @@ function check_sata_attributes_format_old {
 			# use 10# to force bash to treat the value as a base-10 integer
 			if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
-				local subj="[${disk}] New WORST value for ${attribute_name}"
 				local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
-				
+				alert_msg+="${msg}"
 				debug "${msg}"
-				alert "${subj}" "${msg}"
 			fi
 
 			set_state "${disk_name}" "${id}_worst" "${worst}"
 		fi
 		
     done
+
+	# ALERT
+	# =====
+
+	if [[ -n "${alert_msg}" ]]; then
+		alert "${alert_msg}"
+	fi
 }

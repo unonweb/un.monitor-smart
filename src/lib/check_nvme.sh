@@ -1,7 +1,8 @@
 function check_nvme {
     local disk="${1}"
 	local disk_name=$(basename "${disk}")
-    
+    local alert_msg=""
+
     # Dump NVMe SMART log to a temporary file
     local tmp_log="${TMP_DIR}/${disk_name}.log"
     smartctl --attributes "${disk}" > "${tmp_log}"
@@ -14,10 +15,8 @@ function check_nvme {
     local prev_crit_warn=$(get_state "${disk_name}" "crit_warn")
     if [[ "${crit_warn}" != "0x00" ]] && [[ "${crit_warn}" != "${prev_crit_warn}" ]]; then
 		
-		local subj="[${disk}] Critical Warning"
 		local msg="Critical Warning: ${crit_warn}"
-		
-        alert "${subj}" "${msg}"
+		alert_msg+="${msg}"
         set_state "${disk_name}" "crit_warn" "${crit_warn}"
     fi
 
@@ -32,10 +31,8 @@ function check_nvme {
             local spare_alerted=$(get_state "${disk_name}" "spare_alerted")
             if [[ "${spare_alerted}" != "1" ]]; then
 				
-				local subj="[${disk}] Low Available Spare"
 				local msg="MSG: Available spare on ${disk} has dropped to ${avail_spare}%, reaching/exceeding the threshold of ${spare_thresh}%."
-
-                alert "${subj}" "${msg}"
+				alert_msg+="${msg}"
                 set_state "${disk_name}" "spare_alerted" "1"
             fi
         fi
@@ -50,10 +47,8 @@ function check_nvme {
     [[ -z "${prev_errors}" ]] && prev_errors=0
     if [[ -n "${errors}" ]] && (( errors > prev_errors )); then
 
-		local subj="[${disk}] New Errors Detected"
 		local msg="MSG: Media and Data Integrity Errors on ${disk} increased from ${prev_errors} to ${errors}."
-
-        alert "${subj}" "${msg}"
+		alert_msg+="${msg}"
         set_state "${disk_name}" "errors" "${errors}"
     fi
 
@@ -65,10 +60,8 @@ function check_nvme {
     [[ -z "${prev_unsafe}" ]] && prev_unsafe=0
     if [[ -n "${unsafe}" ]] && (( unsafe > prev_unsafe )); then
 
-		local subj="[${disk}] Unsafe Shutdowns Increased"
 		local msg="Unsafe shutdowns on ${disk} increased from ${prev_unsafe} to ${unsafe}."
-
-		alert "${subj}" "${msg}"
+		alert_msg+="${msg}"
         set_state "${disk_name}" "unsafe" "${unsafe}"
     fi
 
@@ -84,23 +77,26 @@ function check_nvme {
     [[ -z "${prev_warn_time}" ]] && prev_warn_time=0
     if [[ -n "${warn_temp_time}" ]] && (( warn_temp_time > prev_warn_time )); then
 
-		local subj="[${disk}] Warning Temperature Time Increased"
 		local msg="Warning Composite Temperature Time on ${disk} increased to ${warn_temp_time} minutes."
-
-		alert "${subj}" "${msg}"
-        set_state "${disk_name}" "warn_temp_time" "${warn_temp_time}"
+		alert_msg+="${msg}"
+		set_state "${disk_name}" "warn_temp_time" "${warn_temp_time}"
     fi
 
     local prev_crit_time=$(get_state "${disk_name}" "crit_temp_time")
     [[ -z "${prev_crit_time}" ]] && prev_crit_time=0
     if [[ -n "${crit_temp_time}" ]] && (( crit_temp_time > prev_crit_time )); then
 
-		local subj="[${disk}] Critical Temperature Time Increased"
 		local msg="Critical Composite Temperature Time on ${disk} increased to ${crit_temp_time} minutes."
-
-		alert "${subj}" "${msg}"
-        set_state "${disk_name}" "crit_temp_time" "${crit_temp_time}"
+		alert_msg+="${msg}"
+		set_state "${disk_name}" "crit_temp_time" "${crit_temp_time}"
     fi
+
+	# ALERT
+	# =====
+	
+	if [[ -n "${alert_msg}" ]]; then
+		alert "${alert_msg}"
+	fi
 
     # DEBUG
 	# =====
