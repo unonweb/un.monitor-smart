@@ -58,30 +58,5 @@ function check_sata_format_old {
 			set_state "${disk_name}" "${id}_worst" "${worst}"
 		fi
 		
-		# THRESH
-		# ======
-        # Compare RAW_VALUE against THRESH
-		
-		# Check that both vars contain only numbers
-        if [[ "${thresh}" =~ ^[0-9]+$ ]] && [[ "${raw_value}" =~ ^[0-9]+$ ]]; then
-			
-			if ((DEBUG)); then echo "Comparing attribute: RAW > THRES: ${raw_value} > ${thresh}"; fi
-			
-            if (( 10#${raw_value} > 10#${thresh} )); then
-                # Only alert once per threshold cross to prevent spam
-                local raw_alerted=$(get_state "${disk_name}" "${id}_raw_alerted")
-                if [[ "${raw_alerted}" != "1" ]]; then
-
-					local subj="[${disk}] RAW exceeds THRESH for ${attribute_name}"
-					local msg="Attribute ${attribute_name} (ID ${id}) on ${disk} has a RAW_VALUE of ${raw_value}, which exceeds the THRESHOLD of ${thresh}."
-
-					alert "${subj}" "${msg}"
-					# set alerted to prevent multiple alerts for the same cause
-                    set_state "${disk_name}" "${id}_raw_alerted" "1"
-                fi
-            else
-                set_state "${disk_name}" "${id}_raw_alerted" "0"
-            fi
-        fi
     done
 }
