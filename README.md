@@ -1,7 +1,14 @@
+NOTES
+=====
+
+```sh
+sudo smartctl --smart=on --offlineauto=on --saveauto=on ${your-disks}
+```
+
 SMART Attributes
 ================
 
-This information has been put together by Gemini AI.
+This information has been put together with the help of **Gemini AI**.
 
 
 Critical SATA attributes
@@ -22,7 +29,7 @@ If any of these RAW_VALUES increase above 0, your drive is actively degrading or
   If this is higher than 0, backup your data immediately.
 
 - 198 **Offline_Uncorrectable**:
-  Sectors with uncorrectable errors when read/write operations were attempted. 
+  Sectors with uncorrectable errors when read/write operations were attempted.
   This points directly to mechanical or media failure.
 
 
