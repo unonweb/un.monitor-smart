@@ -5,7 +5,7 @@ function check_sata_attributes_format_old {
 
 	source "${SCRIPT_DIR}/lib/alert.sh"
 
-	grep --extended-regexp '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
+	while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
 		# '^[[:space:]]*'
 		# Matches any line that starts with zero or more spaces
 		# '[0-9]+ '
@@ -27,7 +27,7 @@ function check_sata_attributes_format_old {
 			local fail_alerted=$(get_state "${disk_name}" "${id}_fail_alerted")
 			if [[ "${fail_alerted}" != "1" ]]; then
 
-				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\n Fail Alert: ${when_failed}"
+				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nFail Alert: ${when_failed}"
 				alert_msg+="${msg}\n"
 				
 				# set state to prevent multiple alerts for the same cause
@@ -68,7 +68,7 @@ function check_sata_attributes_format_old {
 
 				if [[ -n "${prev_worst}" ]] && (( 10#${worst} > 10#${prev_worst} )); then
 
-					local msg="The WORST value for attribute ${attribute_name} (ID ${id}) raised from ${prev_worst} to ${worst} on ${disk}."
+					local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value raised from ${prev_worst} to ${worst}"
 					alert_msg+="${msg}"
 					debug "${msg}"
 				fi
@@ -77,7 +77,7 @@ function check_sata_attributes_format_old {
 				if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
 					debug "Celsius Scale: normalized"
-					local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
+					local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value dropped from ${prev_worst} to ${worst}"
 					alert_msg+="${msg}"					
 					debug "${msg}"
 				fi
@@ -98,7 +98,7 @@ function check_sata_attributes_format_old {
 			# use 10# to force bash to treat the value as a base-10 integer
 			if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
-				local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
+				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value dropped ${prev_worst} to ${worst}."
 				alert_msg+="${msg}"
 				debug "Alert: ${msg}"
 			fi
@@ -106,13 +106,13 @@ function check_sata_attributes_format_old {
 			set_state "${disk_name}" "${id}_worst" "${worst}"
 		fi
 		
-    done
+    done < <(grep --extended-regexp '^[[:space:]]*[0-9]+ ' "${tmp_log}")
 
 	# ALERT
 	# =====
-	debug "alert_msg: ${alert_msg}"
-
+	
 	if [[ -n "${alert_msg}" ]]; then
+		debug "\nAlert: ${alert_msg}"
 		alert "${alert_msg}"
 	fi
 }
