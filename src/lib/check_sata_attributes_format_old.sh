@@ -1,4 +1,4 @@
-function check_sata_format_old {
+function check_sata_attributes_format_old {
 
 	local tmp_log="${1}"
 
