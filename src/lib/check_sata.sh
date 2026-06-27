@@ -9,17 +9,14 @@ function check_sata {
 	# (Attributes and Self-Test logs) to a tmp file
     smartctl --all ${smart_args} "${disk}" > "${tmp_log_all}"
 
-	# Dump temparature data
-	smartctl --log=scttempsts $smart_args "$disk" > "${tmp_log_scttempsts}"
-
 	# CHECK --format=old
-	source "${SCRIPT_DIR}/lib/check_sata_format_old.sh"
+	source "${SCRIPT_DIR}/lib/check_sata_attributes_format_old.sh"
 
     # PARSE SMART ATTRIBUTES
 	# ======================
     # Grep lines that start with a number (these are the attribute rows)
 
-    check_sata_format_old "${tmp_log_all}"
+    check_sata_attributes_format_old "${tmp_log_all}"
 
 	# PARSE TEST RESULTS
 	# ==================
@@ -35,11 +32,9 @@ function check_sata {
         
         if [[ "${test_lifetime}" != "${prev_test}" ]]; then
 
-			local subj="[${disk}] Self-Test Error"
 			local msg="A SMART self-test on ${disk} reported an error.\n\nDetails:\n${latest_test}"
-
-			alert "${subj}" "${msg}"
-            set_state "${disk_name}" "latest_error_test" "${test_lifetime}"
+			alert_msg+="${msg}"
+			set_state "${disk_name}" "latest_error_test" "${test_lifetime}"
         fi
     fi
 }

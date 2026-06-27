@@ -118,22 +118,22 @@ function check_nvme_attributes {
 	
 	if [[ -n "${alert_msg}" ]]; then
 		debug "\nAlert: ${alert_msg}"
-		alert "${alert_msg}"
+		alert "[${disk}]" "DISK: ${disk}\n---\n${alert_msg}"
 	fi
 
     # DEBUG
 	# =====
 
-	debug "\
-			avail_spare: ${avail_spare}\n\
-			spare_thresh: ${spare_thresh}\n\
-			errors: ${errors}\n\
-			prev_errors: ${prev_errors}\n\
-			unsafe: ${unsafe}\n\
-			prev_unsafe: ${prev_unsafe}\n\
-			current_temp: ${current_temp}\n\
-			warn_temp_time: ${warn_temp_time}\n\
-			crit_temp_time: ${crit_temp_time}\n\
-			prev_crit_time: ${prev_crit_time}\n\
-		"
+	#debug "\
+	#		avail_spare: ${avail_spare}\n\
+	#		spare_thresh: ${spare_thresh}\n\
+	#		errors: ${errors}\n\
+	#		prev_errors: ${prev_errors}\n\
+	#		unsafe: ${unsafe}\n\
+	#		prev_unsafe: ${prev_unsafe}\n\
+	#		current_temp: ${current_temp}\n\
+	#		warn_temp_time: ${warn_temp_time}\n\
+	#		crit_temp_time: ${crit_temp_time}\n\
+	#		prev_crit_time: ${prev_crit_time}\n\
+	#	"
 }
