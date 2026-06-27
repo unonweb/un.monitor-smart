@@ -13,7 +13,7 @@ source "${SCRIPT_DIR}/lib/is_str_in_arr.sh"
 source "${SCRIPT_DIR}/lib/alert.sh"
 source "${SCRIPT_DIR}/lib/log.sh"
 source "${SCRIPT_DIR}/lib/debug.sh"
-source "${SCRIPT_DIR}/lib/check_nvme.sh"
+source "${SCRIPT_DIR}/lib/check_nvme_attributes.sh"
 source "${SCRIPT_DIR}/lib/check_sata.sh"
 source "${SCRIPT_DIR}/lib/set_state.sh"
 source "${SCRIPT_DIR}/lib/get_state.sh"
@@ -60,7 +60,7 @@ function main {
 		if [[ "${disk}" == /dev/nvme* ]]; then	
 			# NVMe drives generally do not hide behind USB bridges that require -d flags; 
         	# NVMe-to-USB enclosures usually present as standard SCSI/SATA devices (/dev/sd*)
-			check_nvme "${disk}"
+			check_nvme_attributes "${disk}"
 		# SATA
 		elif [[ "${disk}" == /dev/sd* ]]; then
 			local smart_args=""

@@ -1,4 +1,4 @@
-function check_nvme {
+function check_nvme_attributes {
     local disk="${1}"
 	local disk_name=$(basename "${disk}")
     local alert_msg=""
