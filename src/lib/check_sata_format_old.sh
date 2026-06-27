@@ -49,10 +49,9 @@ function check_sata_format_old {
 
 				local subj="[${disk}] New WORST value for ${attribute_name}"
 				local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
-
-				alert "${subj}" "${msg}"
-
 				
+				debug "${msg}"
+				alert "${subj}" "${msg}"
 			fi
 
 			set_state "${disk_name}" "${id}_worst" "${worst}"
