@@ -3,38 +3,27 @@ function check_sata {
     local disk="${1}"
 	local smart_args="${2}"
     local disk_name=$(basename "${disk}")
-    local tmp_log_all="${TMP_DIR}/${disk_name}.log"
+    local tmp_log_attributes="${TMP_DIR}/${disk_name}.log"
+
+	# IMPORTS
+	# =======
+	source "${SCRIPT_DIR}/lib/check_sata_attributes_format_old.sh"
+	source "${SCRIPT_DIR}/lib/check_sata_test_results.sh"
 
 	# Dump SMART data
 	# (Attributes and Self-Test logs) to a tmp file
-    smartctl --all ${smart_args} "${disk}" > "${tmp_log_all}"
-
-	# CHECK --format=old
-	source "${SCRIPT_DIR}/lib/check_sata_attributes_format_old.sh"
+    smartctl --attributes ${smart_args} "${disk}" > "${tmp_log_attributes}"
 
     # PARSE SMART ATTRIBUTES
 	# ======================
     # Grep lines that start with a number (these are the attribute rows)
 
-    check_sata_attributes_format_old "${tmp_log_all}"
+	# CHECK --format=old
+    check_sata_attributes_format_old "${tmp_log_attributes}"
 
 	# PARSE TEST RESULTS
 	# ==================
     # Monitor new test results for errors
 
-    # Grab the most recent test result (starts with "# 1") from the same log
-    latest_test=$(grep -E "^# 1 " "${tmp_log_all}")
-    if [[ -n "${latest_test}" ]] && ! echo "${latest_test}" | grep -qi "Completed without error"; then
-        
-        # Use the LifeTime(hours) column as a unique identifier for the test
-        local test_lifetime=$(echo "${latest_test}" | awk '{print $9}')
-        local prev_test=$(get_state "${disk_name}" "latest_error_test")
-        
-        if [[ "${test_lifetime}" != "${prev_test}" ]]; then
-
-			local msg="A SMART self-test on ${disk} reported an error.\n\nDetails:\n${latest_test}"
-			alert_msg+="${msg}"
-			set_state "${disk_name}" "latest_error_test" "${test_lifetime}"
-        fi
-    fi
+    # check_sata_test_results "${tmp_log_test_results}"
 }
