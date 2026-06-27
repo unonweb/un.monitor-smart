@@ -27,7 +27,7 @@ function check_sata_attributes_format_old {
 			local fail_alerted=$(get_state "${disk_name}" "${id}_fail_alerted")
 			if [[ "${fail_alerted}" != "1" ]]; then
 
-				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nFail Alert: ${when_failed}"
+				local msg="ATTRIBUTE: ${id} ${attribute_name}\nFail Alert: ${when_failed}"
 				alert_msg+="${msg}\n"
 				
 				# set state to prevent multiple alerts for the same cause
@@ -62,7 +62,7 @@ function check_sata_attributes_format_old {
 			# independently of new worst values
 			# alert if temperature is above given threshold
 			if (( 10#${raw_value_cleaned} > 10#${SMART_CELSIUS_THRESH} )); then
-				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nTemperature (${raw_value_cleaned}) above given threshold of ${SMART_CELSIUS_THRESH}"
+				local msg="ATTRIBUTE: ${id} ${attribute_name}\nTemperature (${raw_value_cleaned}) above given threshold of ${SMART_CELSIUS_THRESH}"
 				alert_msg+="${msg}\n"
 			fi
 			
@@ -74,7 +74,7 @@ function check_sata_attributes_format_old {
 
 				if [[ -n "${prev_worst}" ]] && (( 10#${worst} > 10#${prev_worst} )); then
 
-					local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value raised from ${prev_worst} to ${worst}"
+					local msg="ATTRIBUTE: ${id} ${attribute_name}\nThe WORST value raised from ${prev_worst} to ${worst}"
 					alert_msg+="${msg}\n"
 					debug "${msg}"
 				fi
@@ -83,7 +83,7 @@ function check_sata_attributes_format_old {
 				if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
 					debug "Celsius Scale: normalized"
-					local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value dropped from ${prev_worst} to ${worst}"
+					local msg="ATTRIBUTE: ${id} ${attribute_name}\nThe WORST value dropped from ${prev_worst} to ${worst}"
 					alert_msg+="${msg}\n"					
 					debug "${msg}"
 				fi
@@ -104,7 +104,7 @@ function check_sata_attributes_format_old {
 			# use 10# to force bash to treat the value as a base-10 integer
 			if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
-				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value dropped ${prev_worst} to ${worst}"
+				local msg="ATTRIBUTE: ${id} ${attribute_name}\nThe WORST value dropped ${prev_worst} to ${worst}"
 				alert_msg+="${msg}\n"
 				debug "Alert: ${msg}"
 			fi
@@ -119,6 +119,6 @@ function check_sata_attributes_format_old {
 	
 	if [[ -n "${alert_msg}" ]]; then
 		debug "\nAlert: ${alert_msg}"
-		alert "${alert_msg}"
+		alert "[${disk}]" "DISK: ${disk}\n---\n${alert_msg}"
 	fi
 }
