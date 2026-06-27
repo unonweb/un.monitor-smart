@@ -105,8 +105,7 @@ function check_nvme {
     # DEBUG
 	# =====
 
-	if ((DEBUG)); then
-		echo -e "\
+	debug "\
 			avail_spare: ${avail_spare}\n\
 			spare_thresh: ${spare_thresh}\n\
 			errors: ${errors}\n\
@@ -118,5 +117,4 @@ function check_nvme {
 			crit_temp_time: ${crit_temp_time}\n\
 			prev_crit_time: ${prev_crit_time}\n\
 		"
-	fi
 }

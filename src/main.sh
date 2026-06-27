@@ -12,6 +12,7 @@ PATH_DEFAULTS="${SCRIPT_PARENT}/defaults.cfg"
 source "${SCRIPT_DIR}/lib/is_str_in_arr.sh"
 source "${SCRIPT_DIR}/lib/alert.sh"
 source "${SCRIPT_DIR}/lib/log.sh"
+source "${SCRIPT_DIR}/lib/debug.sh"
 source "${SCRIPT_DIR}/lib/check_nvme.sh"
 source "${SCRIPT_DIR}/lib/check_sata.sh"
 source "${SCRIPT_DIR}/lib/set_state.sh"
@@ -38,16 +39,15 @@ function main {
 
 	# 1. Detect all mounted disks
 	DISKS=$(get_mounted_disks)
-	# if ((DEBUG)); then echo "Disks found: ${DISKS}"; fi
 
 	# 2. Iterate through and parse appropriately based on protocol
 	for disk in ${DISKS}; do
 
 		if [[ "${SMART_INCLUDE_DISKS}" != "all" ]] && ! is_str_in_arr "${disk}" "${SMART_INCLUDE_DISKS[@]}"; then
-			if ((DEBUG)); then echo "Skipping disk: ${disk}"; fi
+			debug "---\nDisk: ${disk}\nSkipping\n---"
 			continue
 		else
-			if ((DEBUG)); then echo "Disk: ${disk}"; fi
+			debug "---\nDisk: ${disk}\n---"
 		fi
 
 		# Skip if we don't have read permissions to the disk
