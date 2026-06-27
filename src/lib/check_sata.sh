@@ -13,12 +13,21 @@ function check_sata {
 	# ======================
     # Grep lines that start with a number (these are the attribute rows)
 
-    grep -E '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
-        
+    grep --extended-regexp '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
+		# '^[[:space:]]*'
+		# Matches any line that starts with zero or more spaces
+		# '[0-9]+ '
+		# Matches one or more digits followed by a literal space
+        # read splits a line of text using any whitespace as a delimiter
+		# read then assigns the encountered pieces of text one-by-one to the given variables
+		# read -r prevents backslashes from acting as escape characters, preserving the text exactly as it is
+
 		# Skip attributes that are not included
 		if ! is_str_in_arr "${attribute_name}" "${SMART_INCLUDE_SATA_ATTRIBUTES[@]}"; then
-			if ((DEBUG)); then echo "Skipping attribute ${attribute_name}"; fi
+			if ((DEBUG)); then echo "Skipping attribute: ${attribute_name}"; fi
 			continue
+		else
+			if ((DEBUG)); then echo "Checking attribute: ${attribute_name}"; fi
 		fi
 
         # WORST
@@ -43,7 +52,10 @@ function check_sata {
 		
 		# Check that both vars contain only numbers
         if [[ "${thresh}" =~ ^[0-9]+$ ]] && [[ "${raw_value}" =~ ^[0-9]+$ ]]; then
-            if (( raw_value > thresh )); then
+			
+			if ((DEBUG)); then echo "Comparing attribute: RAW > THRES: ${raw_value} > ${thresh}"; fi
+			
+            if (( 10#${raw_value} > 10#${thresh} )); then
                 # Only alert once per threshold cross to prevent spam
                 local raw_alerted=$(get_state "${disk_name}" "${id}_raw_alerted")
                 if [[ "${raw_alerted}" != "1" ]]; then
@@ -64,7 +76,7 @@ function check_sata {
 	# TEST RESULTS
 	# ============
     # Monitor new test results for errors
-	
+
     # Grab the most recent test result (starts with "# 1") from the same log
     latest_test=$(grep -E "^# 1 " "${tmp_log}")
     if [[ -n "${latest_test}" ]] && ! echo "${latest_test}" | grep -qi "Completed without error"; then
