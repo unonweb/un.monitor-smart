@@ -36,11 +36,12 @@ function check_sata_format_old {
 			set_state "${disk_name}" "${id}_fail_alerted" "0"
 		fi
 
-        # WORST
+		# WORST
 		# =====
 		# Monitor for new WORST value lows of 'Pre-fail' types
+		# Include additional attributes from the config
 
-		if [[ "${type}" == "Pre-fail" ]]; then
+		if [[ "${type}" == "Pre-fail" ]] || is_str_in_arr "${attribute_name}" "${SMART_INCLUDE_SATA_ATTRIBUTES[@]}"; then
 			local prev_worst=$(get_state "${disk_name}" "${id}_worst")
 			# use (( )) to handle numbers correctly
 			# use 10# to force bash to treat the value as a base-10 integer
@@ -50,6 +51,8 @@ function check_sata_format_old {
 				local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
 
 				alert "${subj}" "${msg}"
+
+				
 			fi
 
 			set_state "${disk_name}" "${id}_worst" "${worst}"
