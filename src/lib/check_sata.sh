@@ -5,12 +5,12 @@ function check_sata {
     local disk_name=$(basename "${disk}")
     local tmp_log="${TMP_DIR}/${disk_name}.log"
 
-	# CHECK --format=old
-	source "${SCRIPT_DIR}/lib/check_sata_format_old.sh"
-
-    # Dump SMART data
+	# Dump SMART data
 	# (Attributes and Self-Test logs) to a tmp file
     smartctl --all ${smart_args} "${disk}" > "${tmp_log}"
+	
+	# CHECK --format=old
+	source "${SCRIPT_DIR}/lib/check_sata_format_old.sh"
 
     # PARSE SMART ATTRIBUTES
 	# ======================
