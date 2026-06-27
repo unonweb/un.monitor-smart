@@ -72,7 +72,28 @@ function check_nvme_attributes {
 	local current_temp=$(grep "Temperature:" "${tmp_log}" | awk '{print $2}' | tr -d ',')
     local warn_temp_time=$(grep "Warning  Comp. Temperature Time:" "${tmp_log}" | awk '{print $5}' | tr -d ',')
     local crit_temp_time=$(grep "Critical Comp. Temperature Time:" "${tmp_log}" | awk '{print $5}' | tr -d ',')
-    
+
+	# Match digits at the start of the string
+	if [[ "${current_temp}" =~ ^([0-9]+) ]]; then
+		# BASH_REMATCH[1] contains the captured text 
+		# (regex inside the first set of parentheses)
+		current_temp_cleaned="${BASH_REMATCH[1]}"
+	fi
+
+	if [[ -z "${current_temp_cleaned}" ]]; then
+		msg="ERROR: Could not get current_temp_cleaned from ${current_temp}"
+		log "${msg}"
+		debug "${msg}"
+		continue
+	fi
+
+	# alert if temperature is above given threshold
+	if (( 10#${current_temp} > 10#${SMART_CELSIUS_THRESH} )); then
+		local msg="Temperature (${current_temp}) above given threshold of ${SMART_CELSIUS_THRESH}"
+		alert_msg+="${msg}\n"
+	fi
+
+	# warn_temp_time
     local prev_warn_time=$(get_state "${disk_name}" "warn_temp_time")
     [[ -z "${prev_warn_time}" ]] && prev_warn_time=0
     if [[ -n "${warn_temp_time}" ]] && (( warn_temp_time > prev_warn_time )); then
@@ -82,6 +103,7 @@ function check_nvme_attributes {
 		set_state "${disk_name}" "warn_temp_time" "${warn_temp_time}"
     fi
 
+	# crit_temp_time
     local prev_crit_time=$(get_state "${disk_name}" "crit_temp_time")
     [[ -z "${prev_crit_time}" ]] && prev_crit_time=0
     if [[ -n "${crit_temp_time}" ]] && (( crit_temp_time > prev_crit_time )); then
