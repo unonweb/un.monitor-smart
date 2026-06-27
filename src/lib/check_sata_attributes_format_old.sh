@@ -41,9 +41,8 @@ function check_sata_attributes_format_old {
 		# TEMPERATURE
 		# ===========
 
-		if [[ "${attribute_name}" = "Temperature_Celsius" ]]; then
+		if [[ "${attribute_name}" =~ ^(Temperature_Celsius|Airflow_Temperature_Cel)$ ]]; then
 			# ID: 194
-			local attribute_temparature_celsius_present=1
 			local prev_worst=$(get_state "${disk_name}" "${id}_worst")
 
 			# Match digits at the start of the string
@@ -58,6 +57,13 @@ function check_sata_attributes_format_old {
 				log "${msg}"
 				debug "${msg}"
 				continue
+			fi
+			
+			# independently of new worst values
+			# alert if temperature is above given threshold
+			if (( 10#${raw_value_cleaned} > 10#${SMART_CELSIUS_THRESH} )); then
+				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nTemperature (${raw_value_cleaned}) above given threshold of ${SMART_CELSIUS_THRESH}"
+				alert_msg+="${msg}\n"
 			fi
 			
 			# Figure out scale
