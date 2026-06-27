@@ -9,7 +9,8 @@ function check_sata {
 	# (Attributes and Self-Test logs) to a tmp file
     smartctl --all ${smart_args} "${disk}" > "${tmp_log_all}"
 
-	smartctl --log=scttempsts $smart_args "$disk" > "${tmp_log_all}"
+	# Dump temparature data
+	smartctl --log=scttempsts $smart_args "$disk" > "${tmp_log_scttempsts}"
 
 	# CHECK --format=old
 	source "${SCRIPT_DIR}/lib/check_sata_format_old.sh"
