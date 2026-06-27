@@ -5,6 +5,9 @@ function check_sata {
     local disk_name=$(basename "${disk}")
     local tmp_log="${TMP_DIR}/${disk_name}.log"
 
+	# CHECK --format=old
+	source "${SCRIPT_DIR}/lib/check_sata_format_old.sh"
+
     # Dump SMART data
 	# (Attributes and Self-Test logs) to a tmp file
     smartctl --all ${smart_args} "${disk}" > "${tmp_log}"
@@ -13,68 +16,10 @@ function check_sata {
 	# ======================
     # Grep lines that start with a number (these are the attribute rows)
 
-    grep --extended-regexp '^[[:space:]]*[0-9]+ ' "${tmp_log}" | while read -r id attribute_name flag value worst thresh type updated when_failed raw_value; do
-		# '^[[:space:]]*'
-		# Matches any line that starts with zero or more spaces
-		# '[0-9]+ '
-		# Matches one or more digits followed by a literal space
-        # read splits a line of text using any whitespace as a delimiter
-		# read then assigns the encountered pieces of text one-by-one to the given variables
-		# read -r prevents backslashes from acting as escape characters, preserving the text exactly as it is
+    check_sata_format_old "${tmp_log}"
 
-		# Skip attributes that are not included
-		if ! is_str_in_arr "${attribute_name}" "${SMART_INCLUDE_SATA_ATTRIBUTES[@]}"; then
-			if ((DEBUG)); then echo "Skipping attribute: ${attribute_name}"; fi
-			continue
-		else
-			if ((DEBUG)); then echo "Checking attribute: ${attribute_name}"; fi
-		fi
-
-        # WORST
-		# =====
-		# Monitor for new WORST value lows
-
-        local prev_worst=$(get_state "${disk_name}" "${id}_worst")
-		# use (( )) to handle numbers correctly
-		# use 10# to force bash to treat the value as a base-10 integer
-        if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
-
-			local subj="[${disk}] New WORST value for ${attribute_name}"
-			local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
-
-			alert "${subj}" "${msg}"
-        fi
-        set_state "${disk_name}" "${id}_worst" "${worst}"
-		
-		# THRESH
-		# ======
-        # Compare RAW_VALUE against THRESH
-		
-		# Check that both vars contain only numbers
-        if [[ "${thresh}" =~ ^[0-9]+$ ]] && [[ "${raw_value}" =~ ^[0-9]+$ ]]; then
-			
-			if ((DEBUG)); then echo "Comparing attribute: RAW > THRES: ${raw_value} > ${thresh}"; fi
-			
-            if (( 10#${raw_value} > 10#${thresh} )); then
-                # Only alert once per threshold cross to prevent spam
-                local raw_alerted=$(get_state "${disk_name}" "${id}_raw_alerted")
-                if [[ "${raw_alerted}" != "1" ]]; then
-
-					local subj="[${disk}] RAW exceeds THRESH for ${attribute_name}"
-					local msg="Attribute ${attribute_name} (ID ${id}) on ${disk} has a RAW_VALUE of ${raw_value}, which exceeds the THRESHOLD of ${thresh}."
-
-					alert "${subj}" "${msg}"
-					# set alerted to prevent multiple alerts for the same cause
-                    set_state "${disk_name}" "${id}_raw_alerted" "1"
-                fi
-            else
-                set_state "${disk_name}" "${id}_raw_alerted" "0"
-            fi
-        fi
-    done
-
-	# TEST RESULTS
-	# ============
+	# PARSE TEST RESULTS
+	# ==================
     # Monitor new test results for errors
 
     # Grab the most recent test result (starts with "# 1") from the same log
