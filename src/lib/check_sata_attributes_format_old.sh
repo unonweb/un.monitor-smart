@@ -75,7 +75,7 @@ function check_sata_attributes_format_old {
 				if [[ -n "${prev_worst}" ]] && (( 10#${worst} > 10#${prev_worst} )); then
 
 					local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value raised from ${prev_worst} to ${worst}"
-					alert_msg+="${msg}"
+					alert_msg+="${msg}\n"
 					debug "${msg}"
 				fi
 			else
@@ -84,7 +84,7 @@ function check_sata_attributes_format_old {
 
 					debug "Celsius Scale: normalized"
 					local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value dropped from ${prev_worst} to ${worst}"
-					alert_msg+="${msg}"					
+					alert_msg+="${msg}\n"					
 					debug "${msg}"
 				fi
 			fi
@@ -104,8 +104,8 @@ function check_sata_attributes_format_old {
 			# use 10# to force bash to treat the value as a base-10 integer
 			if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
-				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value dropped ${prev_worst} to ${worst}."
-				alert_msg+="${msg}"
+				local msg="ATTRIBUTE: ${id} ${attribute_name}\n\nThe WORST value dropped ${prev_worst} to ${worst}"
+				alert_msg+="${msg}\n"
 				debug "Alert: ${msg}"
 			fi
 
