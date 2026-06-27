@@ -11,7 +11,7 @@ function check_sata_format_old {
 		# read then assigns the encountered pieces of text one-by-one to the given variables
 		# read -r prevents backslashes from acting as escape characters, preserving the text exactly as it is
 
-		if ((DEBUG)); then echo "Attribute: ${attribute_name}"; fi
+		if ((DEBUG)); then echo -e "\nAttribute: ${attribute_name}"; fi
 		
 		# WHEN_FAILED
 		# ===========
@@ -44,19 +44,22 @@ function check_sata_format_old {
 
         # WORST
 		# =====
-		# Monitor for new WORST value lows
+		# Monitor for new WORST value lows of 'Pre-fail' types
 
-        local prev_worst=$(get_state "${disk_name}" "${id}_worst")
-		# use (( )) to handle numbers correctly
-		# use 10# to force bash to treat the value as a base-10 integer
-        if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
+		if [[ "${type}" == "Pre-fail" ]]; then
+			local prev_worst=$(get_state "${disk_name}" "${id}_worst")
+			# use (( )) to handle numbers correctly
+			# use 10# to force bash to treat the value as a base-10 integer
+			if [[ -n "${prev_worst}" ]] && (( 10#${worst} < 10#${prev_worst} )); then
 
-			local subj="[${disk}] New WORST value for ${attribute_name}"
-			local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
+				local subj="[${disk}] New WORST value for ${attribute_name}"
+				local msg="The WORST value for attribute ${attribute_name} (ID ${id}) dropped from ${prev_worst} to ${worst} on ${disk}."
 
-			alert "${subj}" "${msg}"
-        fi
-        set_state "${disk_name}" "${id}_worst" "${worst}"
+				alert "${subj}" "${msg}"
+			fi
+
+			set_state "${disk_name}" "${id}_worst" "${worst}"
+		fi
 		
 		# THRESH
 		# ======
