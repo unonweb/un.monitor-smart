@@ -11,6 +11,7 @@ PATH_DEFAULTS="${SCRIPT_PARENT}/defaults.cfg"
 # IMPORTS
 source "${SCRIPT_DIR}/lib/is_str_in_arr.sh"
 source "${SCRIPT_DIR}/lib/alert.sh"
+source "${SCRIPT_DIR}/lib/log.sh"
 source "${SCRIPT_DIR}/lib/check_nvme.sh"
 source "${SCRIPT_DIR}/lib/check_sata.sh"
 source "${SCRIPT_DIR}/lib/set_state.sh"
@@ -37,15 +38,21 @@ function main {
 
 	# 1. Detect all mounted disks
 	DISKS=$(get_mounted_disks)
-	if ((DEBUG)); then echo "Disks found: ${DISKS}"; fi
+	# if ((DEBUG)); then echo "Disks found: ${DISKS}"; fi
 
 	# 2. Iterate through and parse appropriately based on protocol
 	for disk in ${DISKS}; do
 
-		if ((DEBUG)); then echo "Checking disk: ${disk}"; fi
+		if [[ "${SMART_INCLUDE_DISKS}" != "all" ]] && ! is_str_in_arr "${disk}" "${SMART_INCLUDE_DISKS[@]}"; then
+			if ((DEBUG)); then echo "Skipping disk: ${disk}"; fi
+			continue
+		else
+			if ((DEBUG)); then echo "Disk: ${disk}"; fi
+		fi
 
 		# Skip if we don't have read permissions to the disk
 		if [[ ! -r "${disk}" ]]; then
+			log "ERROR: Can't read ${disk}. Skipping."
 			continue
 		fi
 
@@ -79,7 +86,7 @@ function main {
 				
 				# If no flag worked, log an error and skip the disk to avoid spam
 				if [[ "${usb_supported}" == false ]]; then
-					echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Cannot read SMART data for USB disk ${disk}. Bridge chip may be unsupported." >> "${ERROR_LOG_FILE}"
+					log "ERROR: Cannot read SMART data for USB disk ${disk}. Bridge chip may be unsupported."
 					continue
 				fi
 			fi
@@ -87,8 +94,8 @@ function main {
 			# Pass the disk and the discovered smart arguments
         	check_sata "${disk}" "${smart_args}"
 		else
-			# Log or ignore unknown block devices (e.g., mmcblk, md, dm)
-			echo "$(date '+%Y-%m-%d %H:%M:%S') - INFO: Unrecognized base device type for ${disk}, skipping." >> "${ERROR_LOG_FILE}"
+			# Log or ignore unknown block devices
+			log "INFO: Unrecognized base device type for ${disk}, skipping."
 		fi
 	done
 }
