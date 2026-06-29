@@ -40,10 +40,10 @@ function main {
 	mkdir -p "${TMP_DIR}"
 	mkdir -p "${LOG_DIR}"
 
-	# 1. Detect all mounted disks
+	# Detect mounted disks
 	DISKS=$(get_mounted_disks)
 
-	# 2. Iterate through and parse appropriately based on protocol
+	# Iterate through disks
 	for disk in ${DISKS}; do
 
 		if [[ "${SMART_INCLUDE_DISKS}" != "all" ]] && ! is_str_in_arr "${disk}" "${SMART_INCLUDE_DISKS[@]}"; then
