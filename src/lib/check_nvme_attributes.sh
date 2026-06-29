@@ -82,7 +82,6 @@ function check_nvme_attributes {
 
 	if [[ -z "${current_temp_cleaned}" ]]; then
 		msg="ERROR: Could not get current_temp_cleaned from ${current_temp}"
-		log "${msg}"
 		log "<7> ${msg}"
 		continue
 	fi

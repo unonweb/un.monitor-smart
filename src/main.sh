@@ -22,7 +22,7 @@ source "${SCRIPT_DIR}/lib/get_mounted_disks.sh"
 function main {
 
 	if [ "${UID}" -ne 0 ]; then
-  		echo "This script must be run as root."
+  		log "<3> This script must be run as root."
   		exit 1
 	fi
 
@@ -30,7 +30,7 @@ function main {
 	if [[ -r ${PATH_CONFIG} ]]; then
 		source "${PATH_CONFIG}"
 	else
-		echo "<4>WARN: No config file found at ${PATH_CONFIG}. Using defaults ..."
+		log "<3> WARN: No config file found at ${PATH_CONFIG}. Using defaults ..."
 		source "${PATH_DEFAULTS}"
 	fi
 
@@ -54,7 +54,7 @@ function main {
 
 		# Skip if we don't have read permissions to the disk
 		if [[ ! -r "${disk}" ]]; then
-			log "ERROR: Can't read ${disk}. Skipping."
+			log "<3> ERROR: Can't read ${disk}. Skipping."
 			continue
 		fi
 
@@ -88,7 +88,7 @@ function main {
 				
 				# If no flag worked, log an error and skip the disk to avoid spam
 				if [[ "${usb_supported}" == false ]]; then
-					log "ERROR: Cannot read SMART data for USB disk ${disk}. Bridge chip may be unsupported."
+					log "<3> Cannot read SMART data for USB disk ${disk}. Bridge chip may be unsupported."
 					continue
 				fi
 			fi
@@ -97,7 +97,7 @@ function main {
         	check_sata "${disk}" "${smart_args}"
 		else
 			# Log or ignore unknown block devices
-			log "INFO: Unrecognized base device type for ${disk}, skipping."
+			log "<5> Unrecognized base device type for ${disk}, skipping."
 		fi
 	done
 }
