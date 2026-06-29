@@ -13,18 +13,19 @@ function log {
 
     local message="${1}"
 	local timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+	
 	# Regex pattern that captures two groups:
 	# <number>
 	# message
     if [[ "${message}" =~ ^\<([0-7])\>[[:space:]]*(.*) ]]; then
         local msg_lvl="${BASH_REMATCH[1]}"
-        local clean_message="${BASH_REMATCH[2]}"
+        local clean_msg="${BASH_REMATCH[2]}"
         
         # Only log if the message level is less than or equal to the global LOG_LVL
         if (( msg_lvl <= LOG_LVL )); then
             # Log to file
 			if (( LOG_TO_FILE )); then
-            	echo "${timestamp} [LVL ${msg_lvl}] ${clean_message}" >> "${LOG_FILE}"
+            	echo "${timestamp} [LVL ${msg_lvl}] ${clean_msg}" >> "${LOG_FILE}"
 			fi
 			if (( LOG_TO_CONSOLE )); then
 				echo "${message}"
@@ -33,7 +34,7 @@ function log {
     else
         # Fallback if someone forgets to include <num> (defaults to printing it)
         if (( LOG_TO_FILE )); then
-			echo "${timestamp} [LVL ${msg_lvl}] ${clean_message}" >> "${LOG_FILE}"
+			echo "${timestamp} [LVL ${msg_lvl}] ${clean_msg}" >> "${LOG_FILE}"
 		fi
 		if (( LOG_TO_CONSOLE )); then
 			echo "${message}"
