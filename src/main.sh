@@ -21,7 +21,7 @@ source "${SCRIPT_DIR}/lib/get_mounted_disks.sh"
 function main {
 
 	if [ "${UID}" -ne 0 ]; then
-  		log "This script must be run as root."
+  		echo "This script must be run as root."
   		exit 1
 	fi
 
@@ -29,7 +29,7 @@ function main {
 	if [[ -r ${PATH_CONFIG} ]]; then
 		source "${PATH_CONFIG}"
 	else
-		log "No config file found at ${PATH_CONFIG}. Using defaults ..."
+		echo "No config file found at ${PATH_CONFIG}. Using defaults ..."
 		source "${PATH_DEFAULTS}"
 	fi
 
