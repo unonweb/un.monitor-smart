@@ -25,19 +25,19 @@ function log {
         if (( msg_lvl <= LOG_LVL )); then
             # Log to file
 			if (( LOG_TO_FILE )); then
-            	echo "${timestamp} [LVL ${msg_lvl}] ${clean_msg}" >> "${LOG_FILE}"
+            	echo -e "${timestamp} [LVL ${msg_lvl}] ${clean_msg}" >> "${LOG_FILE}"
 			fi
 			if (( LOG_TO_CONSOLE )); then
-				echo "${message}"
+				echo -e "${message}"
 			fi
         fi
     else
         # Fallback if someone forgets to include <num> (defaults to printing it)
         if (( LOG_TO_FILE )); then
-			echo "${timestamp} [LVL ${msg_lvl}] ${clean_msg}" >> "${LOG_FILE}"
+			echo -e "${timestamp} [LVL ${msg_lvl}] ${clean_msg}" >> "${LOG_FILE}"
 		fi
 		if (( LOG_TO_CONSOLE )); then
-			echo "${message}"
+			echo -e "${message}"
 		fi
     fi
 }
