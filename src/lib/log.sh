@@ -8,6 +8,7 @@
 # - LOG_TO_FILE
 # - LOG_TO_CONSOLE
 # - LOG_LVL
+# - LOG_TO_CONSOLE_WITH_LVL
 
 function log {
 
