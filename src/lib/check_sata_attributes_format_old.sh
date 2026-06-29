@@ -14,7 +14,7 @@ function check_sata_attributes_format_old {
 		# read then assigns the encountered pieces of text one-by-one to the given variables
 		# read -r prevents backslashes from acting as escape characters, preserving the text exactly as it is
 
-		log "<7> \nAttribute: ${attribute_name}"
+		log "<7> Attribute: ${attribute_name}"
 		
 		# WHEN_FAILED
 		# ===========
