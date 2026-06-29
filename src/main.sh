@@ -46,10 +46,10 @@ function main {
 	for disk in ${DISKS}; do
 
 		if [[ "${SMART_INCLUDE_DISKS}" != "all" ]] && ! is_str_in_arr "${disk}" "${SMART_INCLUDE_DISKS[@]}"; then
-			debug "---\nDisk: ${disk}\nSkipping\n---"
+			log "<7> ---\nDisk: ${disk}\nSkipping\n---"
 			continue
 		else
-			debug "---\nDisk: ${disk}\n---"
+			log "<7> ---\nDisk: ${disk}\n---"
 		fi
 
 		# Skip if we don't have read permissions to the disk

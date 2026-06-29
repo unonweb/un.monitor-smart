@@ -8,9 +8,4 @@ function alert {
 		echo -e "${message}" | \
 		mail -s "${ALERT_MAIL_SUBJECT} ${subject}" "${ALERT_MAIL_TO}"
 	fi
-
-	if ((ALERT_LOG)); then
-		# Log the alert locally as well
-		echo "$(date '+%Y-%m-%d %H:%M:%S') - ALERT: ${message}" >> "${ALERT_LOG_FILE}"
-	fi
 }

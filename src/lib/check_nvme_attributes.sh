@@ -83,7 +83,7 @@ function check_nvme_attributes {
 	if [[ -z "${current_temp_cleaned}" ]]; then
 		msg="ERROR: Could not get current_temp_cleaned from ${current_temp}"
 		log "${msg}"
-		debug "${msg}"
+		log "<7> ${msg}"
 		continue
 	fi
 
@@ -117,14 +117,14 @@ function check_nvme_attributes {
 	# =====
 	
 	if [[ -n "${alert_msg}" ]]; then
-		debug "\nAlert: ${alert_msg}"
+		log "<7> \nAlert: ${alert_msg}"
 		alert "[${disk}]" "DISK: ${disk}\n---\n${alert_msg}"
 	fi
 
     # DEBUG
 	# =====
 
-	#debug "\
+	#log "<7> \
 	#		avail_spare: ${avail_spare}\n\
 	#		spare_thresh: ${spare_thresh}\n\
 	#		errors: ${errors}\n\
