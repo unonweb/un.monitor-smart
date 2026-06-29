@@ -12,7 +12,6 @@ PATH_DEFAULTS="${SCRIPT_PARENT}/defaults.cfg"
 source "${SCRIPT_DIR}/lib/is_str_in_arr.sh"
 source "${SCRIPT_DIR}/lib/alert.sh"
 source "${SCRIPT_DIR}/lib/log.sh"
-source "${SCRIPT_DIR}/lib/debug.sh"
 source "${SCRIPT_DIR}/lib/check_nvme_attributes.sh"
 source "${SCRIPT_DIR}/lib/check_sata.sh"
 source "${SCRIPT_DIR}/lib/set_state.sh"
@@ -22,7 +21,7 @@ source "${SCRIPT_DIR}/lib/get_mounted_disks.sh"
 function main {
 
 	if [ "${UID}" -ne 0 ]; then
-  		log "<3> This script must be run as root."
+  		log "This script must be run as root."
   		exit 1
 	fi
 
@@ -30,7 +29,7 @@ function main {
 	if [[ -r ${PATH_CONFIG} ]]; then
 		source "${PATH_CONFIG}"
 	else
-		log "<3> WARN: No config file found at ${PATH_CONFIG}. Using defaults ..."
+		log "No config file found at ${PATH_CONFIG}. Using defaults ..."
 		source "${PATH_DEFAULTS}"
 	fi
 
@@ -54,7 +53,7 @@ function main {
 
 		# Skip if we don't have read permissions to the disk
 		if [[ ! -r "${disk}" ]]; then
-			log "<3> ERROR: Can't read ${disk}. Skipping."
+			log "<3> Can't read ${disk}. Skipping."
 			continue
 		fi
 
