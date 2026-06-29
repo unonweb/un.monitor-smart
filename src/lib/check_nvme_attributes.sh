@@ -31,7 +31,7 @@ function check_nvme_attributes {
             local spare_alerted=$(get_state "${disk_name}" "spare_alerted")
             if [[ "${spare_alerted}" != "1" ]]; then
 				
-				local msg="MSG: Available spare on ${disk} has dropped to ${avail_spare}%, reaching/exceeding the threshold of ${spare_thresh}%."
+				local msg="Available spare on ${disk} has dropped to ${avail_spare}%, reaching/exceeding the threshold of ${spare_thresh}%."
 				alert_msg+="${msg}\n"
                 set_state "${disk_name}" "spare_alerted" "1"
             fi
@@ -47,7 +47,7 @@ function check_nvme_attributes {
     [[ -z "${prev_errors}" ]] && prev_errors=0
     if [[ -n "${errors}" ]] && (( errors > prev_errors )); then
 
-		local msg="MSG: Media and Data Integrity Errors on ${disk} increased from ${prev_errors} to ${errors}."
+		local msg="Media and Data Integrity Errors on ${disk} increased from ${prev_errors} to ${errors}."
 		alert_msg+="${msg}\n"
         set_state "${disk_name}" "errors" "${errors}"
     fi
@@ -81,8 +81,7 @@ function check_nvme_attributes {
 	fi
 
 	if [[ -z "${current_temp_cleaned}" ]]; then
-		msg="ERROR: Could not get current_temp_cleaned from ${current_temp}"
-		log "<7> ${msg}"
+		log "<4> Could not get current_temp_cleaned from ${current_temp}"
 		continue
 	fi
 
@@ -117,7 +116,7 @@ function check_nvme_attributes {
 	
 	if [[ -n "${alert_msg}" ]]; then
 		log "<7> \nAlert: ${alert_msg}"
-		alert "[${disk}]" "DISK: ${disk}\n---\n${alert_msg}"
+		alert "[${disk}]" "DISK: ${disk}\n---\n\n${alert_msg}"
 	fi
 
     # DEBUG
