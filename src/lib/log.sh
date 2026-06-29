@@ -19,25 +19,28 @@ function log {
 	# message
     if [[ "${message}" =~ ^\<([0-7])\>[[:space:]]*(.*) ]]; then
         local msg_lvl="${BASH_REMATCH[1]}"
-        local clean_msg="${BASH_REMATCH[2]}"
-        
-        # Only log if the message level is less than or equal to the global LOG_LVL
-        if (( msg_lvl <= LOG_LVL )); then
-            # Log to file
-			if (( LOG_TO_FILE )); then
-            	echo -e "${timestamp} [LVL ${msg_lvl}] ${clean_msg}" >> "${LOG_FILE}"
-			fi
-			if (( LOG_TO_CONSOLE )); then
-				echo -e "${message}"
-			fi
-        fi
-    else
-        # Fallback if someone forgets to include <num> (defaults to printing it)
-        if (( LOG_TO_FILE )); then
-			echo -e "${timestamp} [LVL ${msg_lvl}] ${clean_msg}" >> "${LOG_FILE}"
-		fi
-		if (( LOG_TO_CONSOLE )); then
-			echo -e "${message}"
-		fi
+        local msg_only="${BASH_REMATCH[2]}"
     fi
+	# Check msg_lvl
+	# If not specified default to log, too
+	if (( msg_lvl <= LOG_LVL )) || [[ -z ${msg_lvl} ]]; then
+
+		# Log to file
+		if (( LOG_TO_FILE )); then
+			echo -e "${timestamp} [LVL ${msg_lvl}] ${msg_only}" >> "${LOG_FILE}"
+		fi
+
+		# Log to console
+		if (( LOG_TO_CONSOLE )); then
+			if [ -n "${INVOCATION_ID}" ]; then
+				# Script is running inside a systemd service
+				# Log original message
+				echo -e "${message}"
+			else
+				# No systemd service around
+				# Log clean message
+				echo -e "${msg_only}"
+			fi
+		fi
+	fi
 }
