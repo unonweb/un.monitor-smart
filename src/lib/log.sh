@@ -13,18 +13,24 @@ function log {
 
     local message="${1}"
 	local timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-	
+	local msg_lvl
+	local msg_only
+
 	# Regex pattern that captures two groups:
 	# <number>
 	# message
     if [[ "${message}" =~ ^\<([0-7])\>[[:space:]]*(.*) ]]; then
-        local msg_lvl="${BASH_REMATCH[1]}"
-        local msg_only="${BASH_REMATCH[2]}"
-    fi
+        msg_lvl="${BASH_REMATCH[1]}"
+        msg_only="${BASH_REMATCH[2]}"
+	else
+    	msg_lvl="" # Optional: or set a default level like "6" (info) or "3" (err)
+    	msg_only="${message}"
+	fi
+
 	# Check msg_lvl
 	# If not specified default to log, too
-	if (( msg_lvl <= LOG_LVL )) || [[ -z ${msg_lvl} ]]; then
-
+	if [[ -z "${msg_lvl}" || "${msg_lvl}" -le "${LOG_LVL}" ]]; then
+		
 		# Log to file
 		if (( LOG_TO_FILE )); then
 			echo -e "${timestamp} [LVL ${msg_lvl}] ${msg_only}" >> "${LOG_FILE}"
