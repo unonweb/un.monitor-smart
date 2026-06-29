@@ -38,8 +38,12 @@ function log {
 
 		# Log to console
 		if (( LOG_TO_CONSOLE )); then
-			if [ -n "${INVOCATION_ID}" ]; then
-				# Script is running inside a systemd service
+			# Replace all newlines with a space
+			message="${message//\\n/ }"
+			msg_only="${msg_only//\\n/ }"
+			
+			if (( LOG_TO_CONSOLE_WITH_LVL )); then
+				# Use this when connected to systemd journal
 				# Log original message
 				echo -e "${message}"
 			else
