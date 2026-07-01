@@ -1,4 +1,5 @@
 function check_nvme_attributes {
+
     local disk="${1}"
 	local disk_name=$(basename "${disk}")
     local alert_msg=""
@@ -116,8 +117,13 @@ function check_nvme_attributes {
 	
 	if [[ -n "${alert_msg}" ]]; then
 		log "<7> \nAlert: ${alert_msg}"
-		alert "[${disk}]" "DISK: ${disk}\n---\n\n${alert_msg}"
+		alert "${disk}" "DISK: ${disk}\n---\n\n${alert_msg}"
 	fi
+
+	# REPORT
+	# ======
+
+	report "$(cat "${tmp_log}")"
 
     # DEBUG
 	# =====

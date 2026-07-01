@@ -119,6 +119,11 @@ function check_sata_attributes_format_old {
 	
 	if [[ -n "${alert_msg}" ]]; then
 		log "<7> \nAlert: ${alert_msg}"
-		alert "[${disk}]" "DISK: ${disk}\n---\n${alert_msg}"
+		alert "${disk}" "DISK: ${disk}\n---\n${alert_msg}"
 	fi
+
+	# REPORT
+	# ======
+
+	report "$(cat "${tmp_log}")"
 }
